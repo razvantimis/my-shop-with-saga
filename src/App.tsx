@@ -1,44 +1,48 @@
 import React, { useState } from 'react'
-import logo from './logo.svg'
 import './App.css'
+import Counter from './Counter'
+
+import { createStore, applyMiddleware } from 'redux'
+import createSagaMiddleware from 'redux-saga'
+import rootSaga from './sagas'
+import { Provider } from 'react-redux'
+
+
+function reducer(state = 0, action: any) {
+  console.log(action)
+  switch (action.type) {
+    case 'INCREMENT':
+      return state + 1
+    case 'INCREMENT_IF_ODD':
+      return (state % 2 !== 0) ? state + 1 : state
+    case 'DECREMENT':
+      return state - 1
+    default:
+      return state
+  }
+}
+
+const sagaMiddleware = createSagaMiddleware()
+const store = createStore(
+  reducer,
+  applyMiddleware(sagaMiddleware)
+)
+sagaMiddleware.run(rootSaga)
+
+const action = (type: any) => store.dispatch({ type })
 
 function App() {
-  const [count, setCount] = useState(0)
 
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>Hello Vite + React!</p>
-        <p>
-          <button type="button" onClick={() => setCount((count) => count + 1)}>
-            count is: {count}
-          </button>
-        </p>
-        <p>
-          Edit <code>App.tsx</code> and save to test HMR updates.
-        </p>
-        <p>
-          <a
-            className="App-link"
-            href="https://reactjs.org"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Learn React
-          </a>
-          {' | '}
-          <a
-            className="App-link"
-            href="https://vitejs.dev/guide/features.html"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Vite Docs
-          </a>
-        </p>
-      </header>
-    </div>
+    <Provider store={store}>
+      <div className="App">
+        <Counter
+          onIncrement={() => action('INCREMENT')}
+          onDecrement={() => action('DECREMENT')}
+          onIncrementAsync={() => action('INCREMENT_ASYNC')}
+        />
+      </div>
+    </Provider>
   )
 }
 
